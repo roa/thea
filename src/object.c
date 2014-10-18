@@ -1,8 +1,71 @@
 #include "object.h"
 
-void
-object_init(Object *obj, const char *obj_name)
+static int
+cmpstringp(const void *p1, const void *p2)
 {
+    return strcmp(* (char * const *) p1, * (char * const *) p2);
+}
+
+ObjectList
+object_list_init(int32_t size)
+{
+    ObjectList objlist = calloc(sizeof(*objlist), 1);
+
+    objlist->size  = size;
+    objlist->used  = 0;
+    objlist->slide = 0;
+    objlist->coord = (Coord) { .x = 0, .y = 0 };
+    objlist->objects = calloc(sizeof(char *), objlist->size);
+    return objlist;
+}
+
+void
+object_list_free(ObjectList objlist)
+{
+    for (int i = 0; i < objlist->used; ++i)
+    {
+        free(objlist->objects[i]);
+        objlist->objects[i] = NULL;
+    }
+    free(objlist->objects);
+    objlist->objects = NULL;
+    free(objlist);
+    objlist = NULL;
+}
+
+void
+object_list_add(ObjectList objlist, const char *obj)
+{
+    if (objlist->used == objlist->size)
+    {
+        objlist->size = objlist->size * 2;
+        char **new_objects = calloc(sizeof(char *), objlist->size);
+        for (int i = 0; i < objlist->used; ++i)
+            new_objects[i] = objlist->objects[i];
+        free(objlist->objects);
+        objlist->objects = new_objects;
+    }
+    size_t len = strlen(obj);
+    objlist->objects[objlist->used] = calloc(sizeof(char), len + 1);
+    memcpy(objlist->objects[objlist->used], obj, len);
+    objlist->used = objlist->used + 1;
+}
+
+void
+object_list_sort(ObjectList objlist)
+{
+    qsort(
+        objlist->objects,
+        objlist->used,
+        sizeof(char *),
+        cmpstringp
+    );
+}
+
+Object
+object_init(const char *obj_name)
+{
+    Object obj = calloc(sizeof(*obj), 1);
     FILE *fp = fopen(obj_name, "r");
     if (fp == NULL)
         logger_log("%s", strerror(errno));
@@ -18,7 +81,7 @@ object_init(Object *obj, const char *obj_name)
         obj->object[i] = fgetc(fp);
         if (obj->object[i] == '\n')
         {
-            if (obj->width < i)
+            if (obj->width < width)
                 obj->width = width;
             obj->height += 1;
             width = 0;
@@ -26,14 +89,18 @@ object_init(Object *obj, const char *obj_name)
         else
             ++width;
     }
+
     fclose(fp);
+    return obj;
 }
 
 void
-object_free(Object *obj)
+object_free(Object obj)
 {
     free(obj->object);
     obj->object = NULL;
+    free(obj);
+    obj = NULL;
 }
 
 size_t
@@ -55,20 +122,41 @@ object_get_length(FILE *fp)
     return stop - start;
 }
 
-void
-dir_globbing()
+char*
+dir_globbing(const char *dirname)
 {
-    DIR *dir;
+    ObjectList objlist = list_from_dir(dirname);
+    char *choosen = objlist->objects[DICE(objlist->used)];
+    int result_len = strlen(choosen) + 1;
+    char *result = calloc(result_len, sizeof *result);
+    memcpy(result, choosen, result_len);
+    object_list_free(objlist);
+    return result;
+}
+
+ObjectList
+list_from_dir(const char *dname)
+{
+    DIR           *dir;
     struct dirent *ent;
-    if ((dir = opendir ("txt")) != NULL)
+    ObjectList    objlist = object_list_init(2);
+    int dlength = strlen(dname) + 2;
+    if ((dir = opendir(dname)) != NULL)
     {
-        /* print all the files and directories within directory */
-        while ((ent = readdir (dir)) != NULL)
-            logger_log("%s", ent->d_name);
-        closedir (dir);
+        while ((ent = readdir(dir)) != NULL)
+        {
+            if (ent->d_name[0] == '.')
+                continue;
+
+            char *result = calloc(dlength + strlen(ent->d_name), sizeof(*result));
+            sprintf(result, "%s/%s", dname, ent->d_name);
+            object_list_add(objlist, result);
+            free(result);
+        }
+        closedir(dir);
+        object_list_sort(objlist);
     }
     else
-    {
-          logger_log("%s", strerror(errno));
-    }
+        logger_log("%s", strerror(errno));
+    return objlist;
 }

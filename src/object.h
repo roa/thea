@@ -4,21 +4,46 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <dirent.h>
-#include <logger.h>
 
-struct Object
+#include <logger.h>
+#include <helper.h>
+#include <coord.h>
+
+typedef struct ObjectListData
+{
+    char    **objects;
+    int32_t   size;
+    int32_t   used;
+    int32_t   slide;
+    Coord     coord;
+} ObjectListData;
+
+typedef ObjectListData *ObjectList;
+
+ObjectList object_list_init(int32_t size);
+
+void object_list_free(ObjectList objlist);
+
+void object_list_add(ObjectList objlist, const char *obj);
+
+typedef struct ObjectData
 {
     char   *object;
     size_t  size;
     size_t  width;
     size_t  height;
-};
+} ObjectData;
 
-typedef struct Object Object;
+typedef ObjectData *Object;
 
-void object_init(Object *obj, const char *obj_name);
-void object_free(Object *obj);
+Object object_init(const char *obj_name);
+
+void object_free(Object obj);
+
 size_t object_get_length(FILE *fp);
-void dir_globbing();
+
+char* dir_globbing(const char *dirname);
+
+ObjectList list_from_dir(const char *dname);
 
 #endif //THEA_OBJECT_H
