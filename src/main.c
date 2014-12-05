@@ -16,6 +16,7 @@ main()
     SceneManager sm = scenemanager_init();
     scenemanager_run(sm);
     scenemanager_free(sm);
-
+    
+    logger_deinit();
     return 0;
 }
