@@ -153,7 +153,7 @@ void
 move_player_to_rel(SceneManager sm, int x, int y)
 {
     // we need to subtract relative position of player
-    sm->x = x + MAP_X_REL_ZERO - (COLS / 2);
+    sm->x = x + MAP_X_REL_ZERO - (COLS / 2) + 1;
     sm->y = y + MAP_Y_REL_ZERO - (LINES / 2);
 }
 
