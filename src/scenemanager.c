@@ -60,6 +60,8 @@ scenemanager_free(SceneManager sm)
     endwin();
     map_free(sm->current_map);
     player_free(sm->player);
+    free(sm);
+    sm = NULL;
 }
 
 void

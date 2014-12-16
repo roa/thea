@@ -27,13 +27,13 @@ animation_animate(Animation animation, int frame, bool moved)
     Object obj = object_init(local_list->objects[local_list->slide]);
     for (int j = 0; j < obj->size; ++j)
     {
-        if (obj->object[j] == '\n')
+        if (point_get_content(obj->object[j]) == '\n')
         {
             coord.y += 1;
             coord.x  = local_list->coord.x;
             continue;
         }
-        mvprintw(coord.y, coord.x, "%c", obj->object[j]);
+        mvprintw(coord.y, coord.x, "%c", point_get_content(obj->object[j]));
         coord.x += 1;
     }
 

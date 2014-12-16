@@ -127,6 +127,7 @@ map_free(Map map)
 
     free(map->map);
     map->map = NULL;
+    free(map);
     map = NULL;
 }
 
@@ -139,20 +140,23 @@ map_add_object(Map map, const char *obj_name, Coord *p)
     Object obj = object_init(obj_name);
 
     if (!map_object_fits(map, obj, p))
+    {
+        object_free(obj);
         return false;
+    }
 
     for (int i = 0; i < obj->size; ++i)
     {
-        if (obj->object[i] == '\n')
+        if (point_get_content(obj->object[i]) == '\n')
         {
             ++local_y;
             local_x = p->x;
             continue;
         }
-        if (obj->object[i] != ' ')
-            point_set(map->map[local_y][local_x++], obj->object[i], 0);
+        if (point_get_content(obj->object[i]) != ' ')
+            point_set(map->map[local_y][local_x++], point_get_content(obj->object[i]), 0);
         else
-            point_set(map->map[local_y][local_x++], obj->object[i], WALKABLE);
+            point_set(map->map[local_y][local_x++], point_get_content(obj->object[i]), WALKABLE);
     }
 
     object_free(obj);

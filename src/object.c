@@ -71,15 +71,15 @@ object_init(const char *obj_name)
         logger_log("%s", strerror(errno));
 
     obj->size   = object_get_length(fp);
-    obj->width  = 0;
-    obj->height = 0;
     obj->object = calloc(obj->size, sizeof *(obj->object));
 
     int width = 0;
     for (int i = 0; i < obj->size; ++i)
     {
-        obj->object[i] = fgetc(fp);
-        if (obj->object[i] == '\n')
+        char content = fgetc(fp);
+        int  type    = 0;
+
+        if (content == '\n')
         {
             if (obj->width < width)
                 obj->width = width;
@@ -88,6 +88,10 @@ object_init(const char *obj_name)
         }
         else
             ++width;
+
+        obj->object[obj->used] = point_init();
+        point_set(obj->object[obj->used], content, type);
+        obj->used += 1;
     }
 
     fclose(fp);
@@ -97,6 +101,8 @@ object_init(const char *obj_name)
 void
 object_free(Object obj)
 {
+    for (int i = 0; i < obj->used; ++i)
+        point_free(obj->object[i]);
     free(obj->object);
     obj->object = NULL;
     free(obj);

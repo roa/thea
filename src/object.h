@@ -8,6 +8,7 @@
 #include <logger.h>
 #include <helper.h>
 #include <coord.h>
+#include <point.h>
 
 typedef struct ObjectListData
 {
@@ -28,10 +29,11 @@ void object_list_add(ObjectList objlist, const char *obj);
 
 typedef struct ObjectData
 {
-    char   *object;
+    Point  *object;
     size_t  size;
     size_t  width;
     size_t  height;
+    size_t  used;
 } ObjectData;
 
 typedef ObjectData *Object;
