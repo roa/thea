@@ -3,7 +3,7 @@
 Animation
 animation_init(ObjectList objlist)
 {
-    Animation animation = calloc(sizeof(animation), 1);
+    Animation animation = calloc(sizeof(*animation), 1);
 
     animation->frame = 0;
     animation->objlist = objlist;
@@ -13,7 +13,7 @@ animation_init(ObjectList objlist)
 void
 animation_free(Animation animation)
 {
-    free(animation->objlist);
+    object_list_free(animation->objlist);
     animation->objlist = NULL;
     free(animation);
     animation = NULL;

@@ -39,11 +39,11 @@ object_list_add(ObjectList objlist, const char *obj)
     if (objlist->used == objlist->size)
     {
         objlist->size = objlist->size * 2;
-        char **new_objects = calloc(sizeof(char *), objlist->size);
+        char **swap = objlist->objects;
+        objlist->objects = calloc(sizeof(char *), objlist->size);
         for (int i = 0; i < objlist->used; ++i)
-            new_objects[i] = objlist->objects[i];
-        free(objlist->objects);
-        objlist->objects = new_objects;
+            objlist->objects[i] = swap[i];
+        free(swap);
     }
     size_t len = strlen(obj);
     objlist->objects[objlist->used] = calloc(sizeof(char), len + 1);
