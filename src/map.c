@@ -145,7 +145,7 @@ map_add_object(Map map, const char *obj_name, Coord *p)
         return false;
     }
 
-    for (int i = 0; i < obj->size; ++i)
+    for (int i = 0; i < obj->used; ++i)
     {
         if (point_get_content(obj->object[i]) == '\n')
         {
@@ -154,7 +154,7 @@ map_add_object(Map map, const char *obj_name, Coord *p)
             continue;
         }
         if (point_get_content(obj->object[i]) != ' ')
-            point_set(map->map[local_y][local_x++], point_get_content(obj->object[i]), 0);
+            point_set(map->map[local_y][local_x++], point_get_content(obj->object[i]), point_get_type(obj->object[i]));
         else
             point_set(map->map[local_y][local_x++], point_get_content(obj->object[i]), WALKABLE);
     }

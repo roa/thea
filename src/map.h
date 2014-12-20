@@ -14,8 +14,8 @@
 #include <point.h>
 #include <map_exit.h>
 
-#define MAP_WIDTH  100
-#define MAP_HEIGHT 50
+#define MAP_WIDTH  300
+#define MAP_HEIGHT 150
 
 #define MAP_MAX_X (MAP_WIDTH + 2 * COLS)
 #define MAP_MAX_Y (MAP_HEIGHT + 2 * LINES)

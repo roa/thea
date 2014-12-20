@@ -74,11 +74,17 @@ object_init(const char *obj_name)
     obj->object = calloc(obj->size, sizeof *(obj->object));
 
     int width = 0;
+    int type  = 0;
+
     for (int i = 0; i < obj->size; ++i)
     {
         char content = fgetc(fp);
-        int  type    = 0;
 
+        if (content == '')
+        {
+            type ^= WALKABLE;
+            continue;
+        }
         if (content == '\n')
         {
             if (obj->width < width)
