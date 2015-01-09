@@ -3,12 +3,10 @@
 
 #include <stdint.h>
 
-struct Coord
+typedef struct Coord
 {
     int32_t x;
     int32_t y;
-};
-
-typedef struct Coord Coord;
+} Coord;
 
 #endif // THEA_COORD_H

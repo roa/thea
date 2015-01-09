@@ -10,12 +10,9 @@ scenemanager_init()
     noecho();
     cbreak();
     keypad(sm->win, TRUE);
-    sm->scene_x = 0;
-    sm->scene_y = 0;
-    sm->frame   = 0;
     sm->current_map = map_init(sm->scene_x, sm->scene_y);
     sm->player = player_init(sm->player);
-    move_player_to_rel(sm, 1, 1);
+    player_set_rel(sm->player, 1, 1);
     refresh_screen(sm, 0, 0);
     sm->moved = false;
     return sm;
@@ -67,10 +64,13 @@ scenemanager_free(SceneManager sm)
 void
 refresh_screen(SceneManager sm, int delta_x, int delta_y)
 {
-    if (walkable(sm->current_map, X_REL(delta_x, sm->x), Y_REL(delta_y, sm->y)))
+    int32_t player_x, player_y;
+    player_get_rel(sm->player, &player_x, &player_y);
+    if (walkable(sm->current_map, X_REL(delta_x, player_x), Y_REL(delta_y, player_y)))
     {
-        sm->x += delta_x;
-        sm->y += delta_y;
+        player_x += delta_x;
+        player_y += delta_y;
+        player_move(sm->player, player_x, player_y);
         if (delta_x != 0 || delta_y != 0)
             sm->moved = true;
     }
@@ -79,37 +79,22 @@ refresh_screen(SceneManager sm, int delta_x, int delta_y)
 
     for (int y = 0; y < LINES; ++y)
         for (int x = 0; x < COLS; ++x)
-            mvprintw(y, x, "%c", point_get_content(sm->current_map->map[y + sm->y][x + sm->x]));
+            mvprintw(y, x, "%c", point_get_content(sm->current_map->map[y + player_y][x + player_x]));
 
     player_animate(sm->player, sm->frame, sm->moved);
     move(0, 0);
     refresh();
 }
 
-bool
-walkable(Map map, int _delta_x, int _delta_y)
-{
-    if (! IS_WALKABLE(map->map[HEAD_Y+_delta_y][HEAD_X+_delta_x]))
-        return 0;
-    else if (! IS_WALKABLE(map->map[LEFT_FOOT_Y+_delta_y][LEFT_FOOT_X+_delta_x]))
-        return 0;
-    else if (! IS_WALKABLE(map->map[RIGHT_FOOT_Y+_delta_y][RIGHT_FOOT_X+_delta_x]))
-        return 0;
-    else if (! IS_WALKABLE(map->map[LEFT_ARM_Y+_delta_y][LEFT_ARM_X+_delta_x]))
-        return 0;
-    else if (! IS_WALKABLE(map->map[RIGHT_ARM_Y+_delta_y][RIGHT_ARM_X+_delta_x]))
-        return 0;
-    else
-        return 1;
-}
-
 void
 check_for_exit(SceneManager sm)
 {
     Map map = sm->current_map;
-    if (IS_EXIT(map->map[PLAYER_Y][PLAYER_X])) {
+    int32_t player_x, player_y;
+    player_get_abs(sm->player, &player_x, &player_y);
+    if (IS_EXIT(map->map[player_y][player_x])) {
         Map  new_map = NULL;
-        Exit exit    = exit_list_search(map->exits, PLAYER_X, PLAYER_Y),
+        Exit exit    = exit_list_search(map->exits, player_x, player_y),
              entry   = NULL;
 
         int32_t offset_x = 0,
@@ -147,24 +132,8 @@ check_for_exit(SceneManager sm)
         }
         map_free(sm->current_map);
         sm->current_map = new_map;
-        move_player_to_abs(sm, entry->x + offset_x, entry->y + offset_y);
+        player_set_abs(sm->player, entry->x + offset_x, entry->y + offset_y);
     }
-}
-
-void
-move_player_to_rel(SceneManager sm, int x, int y)
-{
-    // we need to subtract relative position of player
-    sm->x = x + MAP_X_REL_ZERO - (COLS / 2) + 1;
-    sm->y = y + MAP_Y_REL_ZERO - (LINES / 2);
-}
-
-void
-move_player_to_abs(SceneManager sm, int x, int y)
-{
-    // we need to subtract relative position of player
-    sm->x = x - (COLS / 2);
-    sm->y = y - (LINES / 2);
 }
 
 uint64_t

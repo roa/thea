@@ -25,6 +25,7 @@ void point_free(Point point);
 void point_set(Point point, char content, int32_t type);
 
 char point_get_content(Point point);
+
 int32_t point_get_type(Point point);
 
 #endif // THEA_POINT_H

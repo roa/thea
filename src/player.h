@@ -3,9 +3,13 @@
 
 #include <stdbool.h>
 #include <stdint.h>
+
 #include <animation.h>
+#include <coord.h>
 #include <logger.h>
+#include <map.h>
 #include <object.h>
+#include <point.h>
 
 #define HEAD_Y          LINES/2
 #define HEAD_X          COLS/2+1
@@ -23,12 +27,28 @@
 typedef struct PlayerData {
     Animation animation;
     int32_t   frame;
+    int32_t   x;
+    int32_t   y;
 } PlayerData;
 
 typedef PlayerData *Player;
 
 Player player_init();
+
 void player_free(Player player);
+
+void player_set_rel(Player player, int32_t x, int32_t y);
+
+void player_set_abs(Player player, int32_t x, int32_t y);
+
+void player_get_rel(Player player, int32_t *x, int32_t *y);
+
+void player_get_abs(Player player, int32_t *x, int32_t *y);
+
+void player_move(Player player, int32_t x, int32_t y);
+
 void player_animate(Player player, int32_t frame, bool moved);
+
+bool player_can_walk(Player player, Point point);
 
 #endif // THEA_PLAYER_H

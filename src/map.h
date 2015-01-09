@@ -11,11 +11,12 @@
 #include <helper.h>
 #include <logger.h>
 #include <animation.h>
+#include <player.h>
 #include <point.h>
 #include <map_exit.h>
 
-#define MAP_WIDTH  300
-#define MAP_HEIGHT 150
+#define MAP_WIDTH  60
+#define MAP_HEIGHT 60
 
 #define MAP_MAX_X (MAP_WIDTH + 2 * COLS)
 #define MAP_MAX_Y (MAP_HEIGHT + 2 * LINES)
@@ -79,6 +80,8 @@ bool map_add_object(Map map, const char *obj_name, Coord *p);
 bool map_object_fits(Map map, Object obj, Coord *p);
 
 void map_add_exits(Map map);
+
+bool walkable(Map map, int _delta_x, int _delta_y);
 
 void map_debug(Map map);
 

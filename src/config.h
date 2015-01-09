@@ -14,6 +14,7 @@ struct Config
 typedef struct Config Config;
 
 void config_init(const char *fname);
+
 const char *get_logdir();
 
 #endif // THEA_CONFIG_H

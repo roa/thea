@@ -212,7 +212,6 @@ map_add_exits(Map map)
             Exit exit = exit_init(x+i, y, UPPER_EXIT);
             point_set(map->map[y][x+i], EXIT_CHAR, WALKABLE | EXIT);
             exit_list_add(map->exits, exit);
-
         }
     }
 
@@ -226,9 +225,25 @@ map_add_exits(Map map)
             Exit exit = exit_init(x+i, y, LOWER_EXIT);
             point_set(map->map[y][x+i], EXIT_CHAR, WALKABLE | EXIT);
             exit_list_add(map->exits, exit);
-
         }
     }
+}
+
+bool
+walkable(Map map, int _delta_x, int _delta_y)
+{
+    if (! IS_WALKABLE(map->map[HEAD_Y+_delta_y][HEAD_X+_delta_x]))
+        return 0;
+    else if (! IS_WALKABLE(map->map[LEFT_FOOT_Y+_delta_y][LEFT_FOOT_X+_delta_x]))
+        return 0;
+    else if (! IS_WALKABLE(map->map[RIGHT_FOOT_Y+_delta_y][RIGHT_FOOT_X+_delta_x]))
+        return 0;
+    else if (! IS_WALKABLE(map->map[LEFT_ARM_Y+_delta_y][LEFT_ARM_X+_delta_x]))
+        return 0;
+    else if (! IS_WALKABLE(map->map[RIGHT_ARM_Y+_delta_y][RIGHT_ARM_X+_delta_x]))
+        return 0;
+    else
+        return 1;
 }
 
 void
