@@ -10,7 +10,7 @@ scenemanager_init()
     noecho();
     cbreak();
     keypad(sm->win, TRUE);
-    sm->current_map = map_init(sm->scene_x, sm->scene_y);
+    sm->current_map = sm_map_init(0, 0);
     sm->player = player_init(sm->player);
     player_set_rel(sm->player, 1, 1);
     refresh_screen(sm, 0, 0);
@@ -92,49 +92,53 @@ check_for_exit(SceneManager sm)
     Map map = sm->current_map;
     int32_t player_x, player_y;
     player_get_abs(sm->player, &player_x, &player_y);
-    if (IS_EXIT(map->map[player_y][player_x])) {
-        Map  new_map = NULL;
-        Exit exit    = exit_list_search(map->exits, player_x, player_y),
-             entry   = NULL;
+    Point player_pos = map->map[player_y][player_x];
+    if (IS_EXIT(player_pos))
+    {
+        Map   new_map = NULL;
+        Coord entry;
 
         int32_t offset_x = 0,
                 offset_y = 0;
 
-        // TODO handle error
-        if (exit == NULL) return;
-
-        switch (exit->type)
+        if (IS_UPPER_EXIT(player_pos))
         {
-            case UPPER_EXIT:
-                sm->scene_y -= 1;
-                new_map = map_init(sm->scene_x, sm->scene_y);
-                entry = exit_list_search_by_type(new_map->exits, LOWER_EXIT);
-                offset_y = -5;
-                break;
-            case RIGHT_EXIT:
-                sm->scene_x += 1;
-                new_map = map_init(sm->scene_x, sm->scene_y);
-                entry = exit_list_search_by_type(new_map->exits, LEFT_EXIT);
-                offset_x = +5;
-                break;
-            case LOWER_EXIT:
-                sm->scene_y += 1;
-                new_map = map_init(sm->scene_x, sm->scene_y);
-                entry = exit_list_search_by_type(new_map->exits, UPPER_EXIT);
-                offset_y = +5;
-                break;
-            case LEFT_EXIT:
-                sm->scene_x -= 1;
-                new_map = map_init(sm->scene_x, sm->scene_y);
-                entry = exit_list_search_by_type(new_map->exits, RIGHT_EXIT);
-                offset_x = -5;
-                break;
+            sm->scene_y -= 1;
+            new_map = sm_map_init(sm->scene_x, sm->scene_y);
+            entry = map_create_exit(new_map, LOWER_EXIT);
+            offset_y = -5;
+        }
+        else if (IS_RIGHT_EXIT(player_pos))
+        {
+            sm->scene_x += 1;
+            new_map = sm_map_init(sm->scene_x, sm->scene_y);
+            entry = map_create_exit(new_map, LEFT_EXIT);
+            offset_x = +5;
+        }
+        else if (IS_LOWER_EXIT(player_pos))
+        {
+            sm->scene_y += 1;
+            new_map = sm_map_init(sm->scene_x, sm->scene_y);
+            entry = map_create_exit(new_map, UPPER_EXIT);
+            offset_y = +5;
+        }
+        else if (IS_LEFT_EXIT(player_pos))
+        {
+            sm->scene_x -= 1;
+            new_map = sm_map_init(sm->scene_x, sm->scene_y);
+            entry = map_create_exit(new_map, RIGHT_EXIT);
+            offset_x = -5;
+        }
+        else
+        {
+            logger_log("exit_type: %u", point_get_type(map->map[player_y][player_x]));
         }
         map_free(sm->current_map);
         sm->current_map = new_map;
-        player_set_abs(sm->player, entry->x + offset_x, entry->y + offset_y);
+        player_set_abs(sm->player, entry.x + offset_x, entry.y + offset_y);
     }
 }
+
 
 uint64_t
 get_micro_time()

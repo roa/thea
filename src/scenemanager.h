@@ -13,6 +13,7 @@
 #include <player.h>
 #include <point.h>
 #include <map.h>
+#include <helper.h>
 
 typedef struct SceneManagerData
 {
@@ -37,6 +38,9 @@ typedef SceneManagerData *SceneManager;
         else                  \
             _sm->frame += 1;  \
     }  while (0)
+
+#define sm_map_init(_x, _y) \
+    map_init(CREATE_UNIQUE(_x, _y), CREATE_MAP_TYPE(CREATE_UNIQUE(_x, _y)))
 
 SceneManager scenemanager_init();
 

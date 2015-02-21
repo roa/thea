@@ -13,7 +13,6 @@
 #include <animation.h>
 #include <player.h>
 #include <point.h>
-#include <map_exit.h>
 
 #define MAP_WIDTH  60
 #define MAP_HEIGHT 60
@@ -48,26 +47,21 @@
 #define MAP_Y_REL(y) (LINES + y)
 
 enum Map_Types {
-    town,
-    not_town,
+    TOWN,
+    DUMMY,
     NUM_MAP_TYPES
 };
 
 typedef struct MapData
 {
     Point    **map;
-    ExitList   exits;
     uint64_t   unique;
-    uint64_t   scene_x;
-    uint64_t   scene_y;
-    int        type;
+    uint32_t   type;
 } MapData;
 
 typedef MapData *Map;
 
-Map map_init(uint64_t scene_x, uint64_t scene_y);
-
-void map_set_type(Map map);
+Map map_init(uint64_t unique, uint32_t type);
 
 void map_free(Map map);
 
@@ -83,15 +77,10 @@ void map_add_exits(Map map);
 
 bool walkable(Map map, int _delta_x, int _delta_y);
 
+Coord map_create_exit(Map map, uint32_t exit_type);
+
 void map_debug(Map map);
 
 #define EXIT_CHAR 'X'
-
-#define CREATE_UNIQUE(_unique, _x, _y) \
-    do {                               \
-        _unique = 0;                   \
-        _unique = _unique | _x;        \
-        _unique = _unique | _y << 32;  \
-    } while (0)
 
 #endif // THEA_MAP_H_

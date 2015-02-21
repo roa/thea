@@ -6,12 +6,10 @@
 #include <lualib.h>
 #include <lauxlib.h>
 
-struct Config
+typedef struct Config
 {
     const char *log_dir;
-};
-
-typedef struct Config Config;
+} Config;
 
 void config_init(const char *fname);
 

@@ -16,13 +16,11 @@
 
 #define LOG_BUFFER_SIZE 100
 
-struct Logger
+typedef struct Logger
 {
     const char *fname;
     int fd;
-};
-
-typedef struct Logger Logger;
+} Logger;
 
 void logger_init();
 void logger_deinit();

@@ -4,7 +4,6 @@
 
 #include <logger.h>
 #include <scenemanager.h>
-#include <object.h>
 
 int
 main()
