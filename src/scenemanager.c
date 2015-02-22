@@ -95,7 +95,6 @@ check_for_exit(SceneManager sm)
     Point player_pos = map->map[player_y][player_x];
     if (IS_EXIT(player_pos))
     {
-    logger_log("debug exit");
         Map   new_map = NULL;
         Coord entry;
 
@@ -134,7 +133,8 @@ check_for_exit(SceneManager sm)
         {
             sm->old.x = player_x;
             sm->old.y = player_y + 2;
-            entry = sm->old;
+            entry.x = MAP_X_REL_ZERO + 2;
+            entry.y = MAP_Y_REL_ZERO + 2;
             new_map = map_init(CREATE_UNIQUE(sm->scene_x, sm->scene_y), HOUSE);
         }
         else if (IS_MAP_EXIT(player_pos))

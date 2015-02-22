@@ -15,15 +15,18 @@
 #include <point.h>
 
 #define MAP_WIDTH  60
-#define MAP_HEIGHT 60
+#define MAP_HEIGHT 40
 
-#define MAP_MAX_X (MAP_WIDTH + 2 * COLS)
-#define MAP_MAX_Y (MAP_HEIGHT + 2 * LINES)
+#define HOUSE_WIDTH  20
+#define HOUSE_HEIGHT 10
+
+#define MAP_MAX_X(_width)  (_width + 2 * COLS)
+#define MAP_MAX_Y(_height) (_height + 2 * LINES)
 
 #define MAP_X_REL_ZERO (COLS - 1)
 #define MAP_Y_REL_ZERO (LINES -1)
-#define MAP_X_REL_MAX (MAP_WIDTH + COLS - 1)
-#define MAP_Y_REL_MAX (MAP_HEIGHT + LINES - 1)
+#define MAP_X_REL_MAX(_width)  (_width + COLS - 1)
+#define MAP_Y_REL_MAX(_height) (_height + LINES - 1)
 
 #define SCENE_MAX_X 2
 #define SCENE_MAX_Y 2
@@ -85,8 +88,6 @@ bool walkable(Map map, int _delta_x, int _delta_y);
 void map_set_dimension(Map map, uint64_t *x, uint64_t *y);
 
 Coord map_create_exit(Map map, uint32_t exit_type);
-
-void map_debug(Map map);
 
 #define EXIT_CHAR 'X'
 

@@ -34,17 +34,17 @@ map_init(uint64_t unique, uint32_t type)
 
     map_set_dimension(map, &map_max_x, &map_max_y);
 
-    map->map = calloc(sizeof(Point), map_max_y);
+    map->map = calloc(sizeof(Point), MAP_MAX_X(map_max_y));
 
-    for (uint64_t y = 0; y < map_max_y; ++y)
+    for (uint64_t y = 0; y < MAP_MAX_Y(map_max_x); ++y)
     {
-        map->map[y] = calloc(sizeof(Point), map_max_x);
-        for (uint64_t x = 0; x < map_max_x; ++x)
+        map->map[y] = calloc(sizeof(Point), MAP_MAX_X(map_max_x));
+        for (uint64_t x = 0; x < MAP_MAX_X(map_max_x); ++x)
         {
             map->map[y][x] = point_init();
-            if (x == MAP_X_REL_ZERO || x == MAP_X_REL_MAX)
+            if (x == MAP_X_REL_ZERO || x == MAP_X_REL_MAX(map_max_x))
                 point_set(map->map[y][x], '?', 0);
-            else if (y == MAP_Y_REL_ZERO || y == MAP_Y_REL_MAX)
+            else if (y == MAP_Y_REL_ZERO || y == MAP_Y_REL_MAX(map_max_y))
                 point_set(map->map[y][x], '?', 0);
             else
                 point_set(map->map[y][x], ' ', WALKABLE);
@@ -69,10 +69,17 @@ map_set_dimension(Map map, uint64_t *x, uint64_t *y)
 {
     switch(map->type)
     {
-        default:
-            *x = MAP_MAX_X;
-            *y = MAP_MAX_Y;
+        case HOUSE:
+            *x = HOUSE_WIDTH;
+            *y = HOUSE_HEIGHT;
             break;
+        case TOWN:
+        case DUMMY:
+            *x = MAP_WIDTH;
+            *y = MAP_HEIGHT;
+            break;
+        default:
+            abort();
     }
 }
 
@@ -82,28 +89,30 @@ map_add_landscape(Map map)
     switch(map->type)
     {
         case TOWN:
-            logger_log("town");
             map_try_add(map, "txt/town", 4);
             map_try_add(map, "txt/flora/tree", 100);
             break;
         case DUMMY:
-            logger_log("DUMMY");
             break;
         default:
-            logger_log("unknown");
     }
 }
 
 void
 map_try_add(Map map, const char *dname, int to_add)
 {
+    uint64_t map_max_x,
+             map_max_y;
+
+    map_set_dimension(map, &map_max_x, &map_max_y);
+
     int added = 0;
     Coord p = {MAP_X_REL(1), MAP_Y_REL(1)};
     for(int tries = 0; tries < CREATION_TRIES && added < to_add; ++tries)
-        for (int local_y = p.y; local_y< MAP_Y_REL_MAX; ++local_y)
+        for (int local_y = p.y; local_y< MAP_Y_REL_MAX(map_max_y); ++local_y)
         {
             MAYBE_CONTINUE(99);
-            for (int local_x = p.x; local_x < MAP_X_REL_MAX; ++local_x )
+            for (int local_x = p.x; local_x < MAP_X_REL_MAX(map_max_x); ++local_x )
             {
                 MAYBE_CONTINUE(99);
                 Coord local_p = {local_x, local_y};
@@ -123,11 +132,11 @@ map_free(Map map)
 
     map_set_dimension(map, &map_max_x, &map_max_y);
 
-    for (int y = 0; y < map_max_y; ++y)
-        for (int x = 0; x < map_max_x; ++x)
+    for (int y = 0; y < MAP_MAX_Y(map_max_y); ++y)
+        for (int x = 0; x < MAP_MAX_X(map_max_x); ++x)
             point_free(map->map[y][x]);
 
-    for (int y = 0; y < map_max_y; ++y)
+    for (int y = 0; y < MAP_MAX_Y(map_max_y); ++y)
         free(map->map[y]);
 
     free(map->map);
@@ -181,6 +190,11 @@ map_object_fits(Map map, Object obj, Coord *p)
 Coord
 map_create_exit(Map map, uint32_t exit_type)
 {
+    uint64_t map_max_x,
+             map_max_y;
+
+    map_set_dimension(map, &map_max_x, &map_max_y);
+
     Coord exit;
     srandom(map->unique);
     switch (exit_type)
@@ -190,7 +204,7 @@ map_create_exit(Map map, uint32_t exit_type)
             exit.y = random() % MAP_HEIGHT + MAP_Y_REL_ZERO;
             break;
         case RIGHT_EXIT:
-            exit.x = MAP_X_REL_MAX;
+            exit.x = MAP_X_REL_MAX(map_max_x);
             exit.y =  random() % MAP_HEIGHT + MAP_Y_REL_ZERO;
             break;
         case UPPER_EXIT:
@@ -199,7 +213,11 @@ map_create_exit(Map map, uint32_t exit_type)
             break;
         case LOWER_EXIT:
             exit.x = random() % MAP_WIDTH + MAP_X_REL_ZERO;
-            exit.y = MAP_Y_REL_MAX;
+            exit.y = MAP_Y_REL_MAX(map_max_y);
+            break;
+        case MAP_EXIT:
+            exit.x = HOUSE_WIDTH / 2 + MAP_X_REL_ZERO;
+            exit.y = MAP_Y_REL_MAX(map_max_y);
             break;
         default:
             logger_log("create exit: %lu", exit_type);
@@ -231,6 +249,9 @@ map_add_exits(Map map)
             if (CREATE_SCENE_Y(map->unique) != SCENE_MAX_Y - 1)
                 map_set_exit(map, LOWER_EXIT);
             break;
+        case HOUSE:
+                map_set_exit(map, MAP_EXIT);
+            break;
         default:
             logger_log("%lu", map->type);
             abort();
@@ -241,7 +262,7 @@ void
 map_set_exit(Map map, uint32_t type)
 {
     Coord exit = map_create_exit(map, type);
-    if (type == LOWER_EXIT || type == UPPER_EXIT)
+    if (type == LOWER_EXIT || type == UPPER_EXIT || type == MAP_EXIT)
         for (int8_t i = -2; i <= 2; ++i)
             point_set(map->map[exit.y][exit.x+i], EXIT_CHAR, WALKABLE | type);
     else if (type == LEFT_EXIT || type == RIGHT_EXIT)
@@ -264,15 +285,4 @@ walkable(Map map, int _delta_x, int _delta_y)
         return 0;
     else
         return 1;
-}
-
-void
-map_debug(Map map)
-{
-    for (int y = 0; y < MAP_MAX_Y; ++y)
-    {
-        for (int x = 0; x < MAP_MAX_X; ++x)
-            logger_dump("%c", point_get_content(map->map[y][x]));
-        logger_dump("\n");
-    }
 }
