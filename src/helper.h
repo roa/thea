@@ -3,6 +3,7 @@
 
 #include <stdlib.h>
 #include <stdint.h>
+#include <point.h>
 
 #define DICE(_n) (random() % _n)
 
@@ -21,5 +22,7 @@
 
 #define CREATE_MAP_TYPE(_unique) \
     _unique == 0 ? 0 : DICE(NUM_MAP_TYPES)
+
+uint32_t inverse_exit(uint32_t exit);
 
 #endif // THEA_HELPER_H

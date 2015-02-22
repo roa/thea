@@ -4,13 +4,16 @@
 #include <stdint.h>
 #include <stdlib.h>
 
-#define WALKABLE   0b00001
-#define UPPER_EXIT 0b00010
-#define RIGHT_EXIT 0b00100
-#define LOWER_EXIT 0b01000
-#define LEFT_EXIT  0b10000
+#define WALKABLE   0b0000001
+#define UPPER_EXIT 0b0000010
+#define RIGHT_EXIT 0b0000100
+#define LOWER_EXIT 0b0001000
+#define LEFT_EXIT  0b0010000
+#define HOUSE_EXIT 0b0100000
+#define MAP_EXIT   0b1000000
 
-#define IS_WALKABLE(_point) ((point_get_type(_point) & WALKABLE) > 0)
+#define IS_WALKABLE(_point) \
+    ((point_get_type(_point) & WALKABLE) > 0)
 
 #define IS_UPPER_EXIT(_point) \
     ((point_get_type(_point) & UPPER_EXIT) > 0)
@@ -24,8 +27,19 @@
 #define IS_LEFT_EXIT(_point) \
     ((point_get_type(_point) & LEFT_EXIT ) > 0)
 
+#define IS_HOUSE_EXIT(_point) \
+    ((point_get_type(_point) & HOUSE_EXIT ) > 0)
+
+#define IS_MAP_EXIT(_point) \
+    ((point_get_type(_point) & MAP_EXIT ) > 0)
+
 #define IS_EXIT(_point) \
-    IS_UPPER_EXIT(_point) || IS_LOWER_EXIT(_point) || IS_RIGHT_EXIT(_point) || IS_LEFT_EXIT(_point)
+    IS_UPPER_EXIT(_point) || \
+    IS_LOWER_EXIT(_point) || \
+    IS_RIGHT_EXIT(_point) || \
+    IS_LEFT_EXIT(_point)  || \
+    IS_HOUSE_EXIT(_point) || \
+    IS_MAP_EXIT(_point)
 
 typedef struct PointData
 {

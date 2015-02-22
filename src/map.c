@@ -32,14 +32,7 @@ map_init(uint64_t unique, uint32_t type)
     map->unique = unique;
     map->type   = type;
 
-    switch (map->type)
-    {
-        case TOWN:
-        case DUMMY:
-        default:
-            map_max_x = MAP_MAX_X;
-            map_max_y = MAP_MAX_Y;
-    }
+    map_set_dimension(map, &map_max_x, &map_max_y);
 
     map->map = calloc(sizeof(Point), map_max_y);
 
@@ -57,9 +50,30 @@ map_init(uint64_t unique, uint32_t type)
                 point_set(map->map[y][x], ' ', WALKABLE);
         }
     }
+
     map_add_exits(map);
+
     map_add_landscape(map);
     return map;
+}
+
+Map
+sm_map_init(uint32_t scene_x, uint32_t scene_y)
+{
+    srandom(CREATE_UNIQUE(scene_x, scene_y));
+    return map_init(CREATE_UNIQUE(scene_x, scene_y), CREATE_MAP_TYPE(CREATE_UNIQUE(scene_x, scene_y)));
+}
+
+void
+map_set_dimension(Map map, uint64_t *x, uint64_t *y)
+{
+    switch(map->type)
+    {
+        default:
+            *x = MAP_MAX_X;
+            *y = MAP_MAX_Y;
+            break;
+    }
 }
 
 void
@@ -104,11 +118,16 @@ map_try_add(Map map, const char *dname, int to_add)
 void
 map_free(Map map)
 {
-    for (int y = 0; y < MAP_MAX_Y; ++y)
-        for (int x = 0; x < MAP_MAX_X; ++x)
+    uint64_t map_max_x,
+             map_max_y;
+
+    map_set_dimension(map, &map_max_x, &map_max_y);
+
+    for (int y = 0; y < map_max_y; ++y)
+        for (int x = 0; x < map_max_x; ++x)
             point_free(map->map[y][x]);
 
-    for (int y = 0; y < MAP_MAX_Y; ++y)
+    for (int y = 0; y < map_max_y; ++y)
         free(map->map[y]);
 
     free(map->map);
@@ -181,6 +200,10 @@ map_create_exit(Map map, uint32_t exit_type)
         case LOWER_EXIT:
             exit.x = random() % MAP_WIDTH + MAP_X_REL_ZERO;
             exit.y = MAP_Y_REL_MAX;
+            break;
+        default:
+            logger_log("create exit: %lu", exit_type);
+            abort();
     }
     return exit;
 }
@@ -188,45 +211,42 @@ map_create_exit(Map map, uint32_t exit_type)
 void
 map_add_exits(Map map)
 {
-    // Left exit
-    if (CREATE_SCENE_X(map->unique) != 0)
+    switch (map->type)
     {
-        Coord exit = map_create_exit(map, LEFT_EXIT);
-        for (int8_t i = -2; i <= 2; ++i)
-        {
-            point_set(map->map[exit.y+i][exit.x], EXIT_CHAR, WALKABLE | LEFT_EXIT);
-        }
-    }
+        case TOWN:
+        case DUMMY:
+            // Left exit
+            if (CREATE_SCENE_X(map->unique) != 0)
+                map_set_exit(map, LEFT_EXIT);
 
-    // Right exit
-    if (CREATE_SCENE_X(map->unique) != SCENE_MAX_X - 1)
-    {
-        Coord exit = map_create_exit(map, RIGHT_EXIT);
-        for (int8_t i = -2; i <= 2; ++i)
-        {
-            point_set(map->map[exit.y+i][exit.x], EXIT_CHAR, WALKABLE | RIGHT_EXIT);
-        }
-    }
+            // Right exit
+            if (CREATE_SCENE_X(map->unique) != SCENE_MAX_X - 1)
+                map_set_exit(map, RIGHT_EXIT);
 
-    // Upper exit
-    if (CREATE_SCENE_Y(map->unique) != 0)
-    {
-        Coord exit = map_create_exit(map, UPPER_EXIT);
-        for (int8_t i = -2; i <= 2; ++i)
-        {
-            point_set(map->map[exit.y][exit.x+i], EXIT_CHAR, WALKABLE | UPPER_EXIT);
-        }
-    }
+            // Upper exit
+            if (CREATE_SCENE_Y(map->unique) != 0)
+                map_set_exit(map, UPPER_EXIT);
 
-    // Lower exit
-    if (CREATE_SCENE_Y(map->unique) != SCENE_MAX_Y - 1)
-    {
-        Coord exit = map_create_exit(map, LOWER_EXIT);
-        for (int8_t i = -2; i <= 2; ++i)
-        {
-            point_set(map->map[exit.y][exit.x+i], EXIT_CHAR, WALKABLE | LOWER_EXIT);
-        }
+            // Lower exit
+            if (CREATE_SCENE_Y(map->unique) != SCENE_MAX_Y - 1)
+                map_set_exit(map, LOWER_EXIT);
+            break;
+        default:
+            logger_log("%lu", map->type);
+            abort();
     }
+}
+
+void
+map_set_exit(Map map, uint32_t type)
+{
+    Coord exit = map_create_exit(map, type);
+    if (type == LOWER_EXIT || type == UPPER_EXIT)
+        for (int8_t i = -2; i <= 2; ++i)
+            point_set(map->map[exit.y][exit.x+i], EXIT_CHAR, WALKABLE | type);
+    else if (type == LEFT_EXIT || type == RIGHT_EXIT)
+        for (int8_t i = -2; i <= 2; ++i)
+            point_set(map->map[exit.y+i][exit.x], EXIT_CHAR, WALKABLE | type);
 }
 
 bool

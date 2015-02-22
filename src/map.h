@@ -49,7 +49,8 @@
 enum Map_Types {
     TOWN,
     DUMMY,
-    NUM_MAP_TYPES
+    NUM_MAP_TYPES,
+    HOUSE
 };
 
 typedef struct MapData
@@ -63,6 +64,8 @@ typedef MapData *Map;
 
 Map map_init(uint64_t unique, uint32_t type);
 
+Map sm_map_init(uint32_t scene_x, uint32_t scene_y);
+
 void map_free(Map map);
 
 void map_add_landscape(Map map);
@@ -75,7 +78,11 @@ bool map_object_fits(Map map, Object obj, Coord *p);
 
 void map_add_exits(Map map);
 
+void map_set_exit(Map map, uint32_t type);
+
 bool walkable(Map map, int _delta_x, int _delta_y);
+
+void map_set_dimension(Map map, uint64_t *x, uint64_t *y);
 
 Coord map_create_exit(Map map, uint32_t exit_type);
 

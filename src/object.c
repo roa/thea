@@ -85,6 +85,11 @@ object_init(const char *obj_name)
             type ^= WALKABLE;
             continue;
         }
+        if (content == '')
+        {
+            type ^= WALKABLE ^ HOUSE_EXIT;
+            continue;
+        }
         if (content == '\n')
         {
             if (obj->width < width)

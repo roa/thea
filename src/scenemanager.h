@@ -14,6 +14,7 @@
 #include <point.h>
 #include <map.h>
 #include <helper.h>
+#include <coord.h>
 
 typedef struct SceneManagerData
 {
@@ -24,6 +25,7 @@ typedef struct SceneManagerData
     int      frame;
     Player   player;
     bool     moved;
+    Coord    old;
 } SceneManagerData;
 
 typedef SceneManagerData *SceneManager;
@@ -38,9 +40,6 @@ typedef SceneManagerData *SceneManager;
         else                  \
             _sm->frame += 1;  \
     }  while (0)
-
-#define sm_map_init(_x, _y) \
-    map_init(CREATE_UNIQUE(_x, _y), CREATE_MAP_TYPE(CREATE_UNIQUE(_x, _y)))
 
 SceneManager scenemanager_init();
 
