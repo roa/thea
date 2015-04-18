@@ -25,18 +25,16 @@
 Map
 map_init(uint64_t unique, uint32_t type)
 {
-    uint64_t map_max_x,
-             map_max_y;
-
     Map map = calloc(sizeof(*map), 1);
     map->unique = unique;
     map->type   = type;
 
-    map_set_dimension(map, &map_max_x, &map_max_y);
+    uint64_t map_max_x = map_get_x_dim(map),
+             map_max_y = map_get_y_dim(map);
 
     map->map = calloc(sizeof(Point), MAP_MAX_X(map_max_y));
 
-    for (uint64_t y = 0; y < MAP_MAX_Y(map_max_x); ++y)
+    for (uint64_t y = 0; y < MAP_MAX_Y(map_max_y); ++y)
     {
         map->map[y] = calloc(sizeof(Point), MAP_MAX_X(map_max_x));
         for (uint64_t x = 0; x < MAP_MAX_X(map_max_x); ++x)
@@ -64,22 +62,29 @@ sm_map_init(uint32_t scene_x, uint32_t scene_y)
     return map_init(CREATE_UNIQUE(scene_x, scene_y), CREATE_MAP_TYPE(CREATE_UNIQUE(scene_x, scene_y)));
 }
 
-void
-map_set_dimension(Map map, uint64_t *x, uint64_t *y)
+uint64_t
+map_get_x_dim(Map map)
 {
-    switch(map->type)
+    switch (map->type)
     {
-        case HOUSE:
-            *x = HOUSE_WIDTH;
-            *y = HOUSE_HEIGHT;
-            break;
-        case TOWN:
-        case DUMMY:
-            *x = MAP_WIDTH;
-            *y = MAP_HEIGHT;
-            break;
-        default:
-            abort();
+        case HOUSE: return HOUSE_WIDTH;
+        case TOWN:  return MAP_WIDTH;
+        case DUMMY: return MAP_WIDTH;
+        case BATTLE: return COLS;
+        default: abort();
+    }
+}
+
+uint64_t
+map_get_y_dim(Map map)
+{
+    switch (map->type)
+    {
+        case HOUSE: return HOUSE_HEIGHT;
+        case TOWN:  return MAP_HEIGHT;
+        case DUMMY: return MAP_HEIGHT;
+        case BATTLE: return LINES;
+        default: abort();
     }
 }
 
@@ -94,16 +99,16 @@ map_add_landscape(Map map)
             break;
         case DUMMY:
             break;
+        case BATTLE:
+            break;
     }
 }
 
 void
 map_try_add(Map map, const char *dname, int to_add)
 {
-    uint64_t map_max_x,
-             map_max_y;
-
-    map_set_dimension(map, &map_max_x, &map_max_y);
+    uint64_t map_max_x = map_get_x_dim(map),
+             map_max_y = map_get_y_dim(map);
 
     int added = 0;
     Coord p = {MAP_X_REL(1), MAP_Y_REL(1)};
@@ -126,10 +131,8 @@ map_try_add(Map map, const char *dname, int to_add)
 void
 map_free(Map map)
 {
-    uint64_t map_max_x,
-             map_max_y;
-
-    map_set_dimension(map, &map_max_x, &map_max_y);
+    uint64_t map_max_x = map_get_x_dim(map),
+             map_max_y = map_get_y_dim(map);
 
     for (int y = 0; y < MAP_MAX_Y(map_max_y); ++y)
         for (int x = 0; x < MAP_MAX_X(map_max_x); ++x)
@@ -189,10 +192,8 @@ map_object_fits(Map map, Object obj, Coord *p)
 Coord
 map_create_exit(Map map, uint32_t exit_type)
 {
-    uint64_t map_max_x,
-             map_max_y;
-
-    map_set_dimension(map, &map_max_x, &map_max_y);
+    uint64_t map_max_x = map_get_x_dim(map),
+             map_max_y = map_get_y_dim(map);
 
     Coord exit;
     srandom(map->unique);
@@ -251,6 +252,9 @@ map_add_exits(Map map)
         case HOUSE:
                 map_set_exit(map, MAP_EXIT);
             break;
+        case BATTLE:
+                map_temp_battle(map);
+            break;
         default:
             logger_log("%lu", map->type);
             abort();
@@ -284,4 +288,19 @@ walkable(Map map, int _delta_x, int _delta_y)
         return 0;
     else
         return 1;
+}
+
+void
+map_temp_battle(Map map)
+{
+    uint64_t map_max_x = map_get_x_dim(map),
+             map_max_y = map_get_y_dim(map);
+
+    double lines = (double) LINES;
+    double cols  = (double) COLS;
+
+    for (uint64_t y = 0; y < MAP_MAX_Y(map_max_y); ++y)
+        for (uint64_t x = 0; x < MAP_MAX_X(map_max_x); ++x)
+            if (y == (uint64_t)(-(lines/cols) * x + LINES))
+                point_set(map->map[y][x], '/', 0);
 }

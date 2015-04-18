@@ -10,6 +10,7 @@
 #include <map.h>
 #include <object.h>
 #include <point.h>
+#include <stats.h>
 
 #define HEAD_Y          LINES/2
 #define HEAD_X          COLS/2+1
@@ -29,11 +30,14 @@ typedef struct PlayerData {
     int32_t   frame;
     int32_t   x;
     int32_t   y;
+    Stats     stats;
 } PlayerData;
 
 typedef PlayerData *Player;
 
 Player player_init();
+
+Player player_init_from_stats(Stats stats);
 
 void player_free(Player player);
 
@@ -47,8 +51,12 @@ void player_get_abs(Player player, int32_t *x, int32_t *y);
 
 void player_move(Player player, int32_t x, int32_t y);
 
+void player_battle_move(Player player, int32_t x, int32_t y);
+
 void player_animate(Player player, int32_t frame, bool moved);
 
 bool player_can_walk(Player player, Point point);
+
+Coord player_battle_pos();
 
 #endif // THEA_PLAYER_H

@@ -19,6 +19,8 @@ Animation animation_init(ObjectList objlist);
 
 void animation_free(Animation animation);
 
-void animation_animate(Animation animation, int frame, bool moved);
+bool animation_animate(Animation animation, int frame, bool moved);
+
+bool animation_move_towards(Animation animation, Coord coord);
 
 #endif // THEA_animation_H

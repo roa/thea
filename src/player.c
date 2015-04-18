@@ -8,6 +8,21 @@ player_init()
     ObjectList objlist  = list_from_dir("txt/animations/person");
     objlist->coord = (Coord) {COLS/2, LINES/2};
     player->animation = animation_init(objlist);
+    player->stats = stats_init();
+    player->stats->speed     = 2;
+    player->stats->hitpoints = 1;
+    return player;
+}
+
+Player
+player_init_from_stats(Stats stats)
+{
+    Player player = calloc(sizeof(*player), 1);
+
+    ObjectList objlist  = list_from_dir("txt/animations/person");
+    objlist->coord = (Coord) {COLS/2, LINES/2};
+    player->animation = animation_init(objlist);
+    player->stats = stats;
     return player;
 }
 
@@ -55,6 +70,13 @@ player_move(Player player, int32_t x, int32_t y)
 }
 
 void
+player_battle_move(Player player, int32_t x, int32_t y)
+{
+    player->animation->objlist->coord.x = x;
+    player->animation->objlist->coord.y = y;
+}
+
+void
 player_animate(Player player, int32_t frame, bool moved)
 {
     animation_animate(player->animation, frame, moved);
@@ -64,4 +86,14 @@ bool
 player_can_walk(Player player, Point point)
 {
     return true;
+}
+
+Coord
+player_battle_pos()
+{
+    double lines = (double) LINES;
+    double cols  = (double) COLS;
+    uint64_t x = (uint64_t) (cols / 2 - 10);
+    uint64_t y = (uint64_t) (lines / cols * x);
+    return (Coord) {.x = x, .y = y};
 }

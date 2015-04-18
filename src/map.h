@@ -53,7 +53,8 @@ enum Map_Types {
     TOWN,
     DUMMY,
     NUM_MAP_TYPES,
-    HOUSE
+    HOUSE,
+    BATTLE
 };
 
 typedef struct MapData
@@ -85,9 +86,12 @@ void map_set_exit(Map map, uint32_t type);
 
 bool walkable(Map map, int _delta_x, int _delta_y);
 
-void map_set_dimension(Map map, uint64_t *x, uint64_t *y);
+uint64_t map_get_x_dim(Map map);
+uint64_t map_get_y_dim(Map map);
 
 Coord map_create_exit(Map map, uint32_t exit_type);
+
+void map_temp_battle(Map map);
 
 #define EXIT_CHAR 'X'
 

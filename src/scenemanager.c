@@ -1,17 +1,12 @@
 #include <scenemanager.h>
 
 SceneManager
-scenemanager_init()
+scenemanager_init(WINDOW *win)
 {
     SceneManager sm = calloc(sizeof(*sm), 1);
-    sm->win = initscr();
-    nodelay(stdscr, true);
-    clear();
-    noecho();
-    cbreak();
-    keypad(sm->win, TRUE);
+    sm->win = win;
     sm->current_map = sm_map_init(0, 0);
-    sm->player = player_init(sm->player);
+    sm->player = player_init();
     player_set_rel(sm->player, 1, 1);
     refresh_screen(sm, 0, 0);
     sm->moved = false;
@@ -40,6 +35,11 @@ scenemanager_run(SceneManager sm)
             case KEY_DOWN:
                 refresh_screen(sm, 0, +1);
                 break;
+            case 'j':
+                sm->bm = battlemanager_init(sm->win, player_init_from_stats(sm->player->stats));
+                battlemanager_run(sm->bm);
+                battlemanager_free(&(sm->bm));
+                break;
             default:
                 refresh_screen(sm, 0, 0);
         }
@@ -52,13 +52,12 @@ scenemanager_run(SceneManager sm)
 }
 
 void
-scenemanager_free(SceneManager sm)
+scenemanager_free(SceneManager *sm)
 {
-    endwin();
-    map_free(sm->current_map);
-    player_free(sm->player);
-    free(sm);
-    sm = NULL;
+    map_free((*sm)->current_map);
+    player_free((*sm)->player);
+    free(*sm);
+    *sm = NULL;
 }
 
 void
@@ -151,13 +150,4 @@ check_for_exit(SceneManager sm)
         sm->current_map = new_map;
         player_set_abs(sm->player, entry.x + offset_x, entry.y + offset_y);
     }
-}
-
-
-uint64_t
-get_micro_time()
-{
-    struct timeval tv;
-    gettimeofday(&tv,NULL);
-    return tv.tv_sec*(uint64_t)1000000+tv.tv_usec;
 }

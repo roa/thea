@@ -1,7 +1,7 @@
 CC = gcc
 LD= gcc
 CFLAGS = -Wall -std=gnu11
-LIB = -llua -lncursesw -lm
+LIB = -llua -lncursesw -lm -lmenu
 INC = -Isrc/
 
 CFLAGS_DEBUG = $(CFLAGS) -g
