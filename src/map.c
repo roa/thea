@@ -94,7 +94,6 @@ map_add_landscape(Map map)
             break;
         case DUMMY:
             break;
-        default:
     }
 }
 
